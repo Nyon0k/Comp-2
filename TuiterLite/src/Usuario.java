@@ -1,3 +1,5 @@
+import Exceptions.EmailInvalidoException;
+
 import java.awt.*;
 import java.util.Objects;
 
@@ -14,11 +16,17 @@ public class Usuario {
     // Pode ser INICIANTE, SENIOR ou NINJA
     private NivelUsuario nivel;
 
-    public Usuario(String nome, String email) {
+    public Usuario(String nome, String email) throws EmailInvalidoException {
+        if (!verificaEmail(email)) throw new EmailInvalidoException();
         this.email = email;
         this.nome = nome;
         this.contTuites = 0;
         this.nivel = NivelUsuario.INICIANTE;
+    }
+
+    private boolean verificaEmail(String email) {
+        String texto = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@" + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+        return email.matches(texto);
     }
 
     public void setFoto(Image foto) {

@@ -1,3 +1,6 @@
+import Exceptions.EmailInvalidoException;
+import Exceptions.TamMaxTuiteUltrapassadoException;
+import Exceptions.UsuarioCadastradoException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,7 +15,7 @@ public class TuiterLiteTest {
     private Usuario usuario;
 
     @Before
-    public void setUp() {
+    public void setUp() throws EmailInvalidoException {
         // cria um TuiterLite
         tuiterLite = new TuiterLite();
 
@@ -25,49 +28,57 @@ public class TuiterLiteTest {
     }
 
     @Test
-    public void testeUsuariosReconhecidosCorretamente() {
+    public void testeUsuariosReconhecidosCorretamente() throws EmailInvalidoException {
         assertEquals("Duas instâncias de Usuario devem ser consideradas iguais se possuirem o mesmo email",
                 this.usuario, new Usuario("Fulano de Tal", "fulano@teste.com"));
     }
 
     @Test
-    public void testeAutorDoTuite() {
+    public void testeAutorDoTuite() throws TamMaxTuiteUltrapassadoException, UsuarioCadastradoException {
         Tuite tuite = tuiterLite.tuitarAlgo(usuario, "Testando");
         assertEquals("O tuíte deve retornar corretamente seu autor",
                 usuario, tuite.getAutor());
     }
 
     @Test
-    public void testeTuiteDeUsuarioDesconhecido() {
-        assertNull("Não deve ser possível tuitar algo se o usuário é desconhecido",
-                tuiterLite.tuitarAlgo(
-                        new Usuario("Usuário Desconhedido", "unknown@void.com"),
-                        "Testando"));
+    public void testeTuiteDeUsuarioDesconhecido() throws EmailInvalidoException {
+        try {
+            assertNull("Não deve ser possível tuitar algo se o usuário é desconhecido",
+                    tuiterLite.tuitarAlgo(
+                            new Usuario("Usuário Desconhedido", "unknown@void.com"),
+                            "Testando"));
+        }catch (TamMaxTuiteUltrapassadoException | UsuarioCadastradoException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     @Test
-    public void testeTamanhoTuite() {
-        assertNotNull(tuiterLite.tuitarAlgo(usuario, "Teste curto"));
+    public void testeTamanhoTuite() throws TamMaxTuiteUltrapassadoException, UsuarioCadastradoException {
+        try {
+            assertNotNull(tuiterLite.tuitarAlgo(usuario, "Teste curto"));
 
-        // testaremos para 100 tamanhos diferentes, todos maiores do que o máximo permitido
-        for (int excessoCaracteres = 1; excessoCaracteres <= 100; excessoCaracteres++) {
+            // testaremos para 100 tamanhos diferentes, todos maiores do que o máximo permitido
+            for (int excessoCaracteres = 1; excessoCaracteres <= 100; excessoCaracteres++) {
 
-            // cria uma String muito grande
-            int tamanho = TuiterLite.TAMANHO_MAXIMO_TUITES + excessoCaracteres;
-            StringBuilder sb = new StringBuilder();
-            for (int i = 1; i <= tamanho; i++) {
-                sb.append("x");
+                // cria uma String muito grande
+                int tamanho = TuiterLite.TAMANHO_MAXIMO_TUITES + excessoCaracteres;
+                StringBuilder sb = new StringBuilder();
+                for (int i = 1; i <= tamanho; i++) {
+                    sb.append("x");
+                }
+                String texto = sb.toString();
+
+                assertNull("Um tuite maior do que o tamanho máximo deve ser ignorado",
+                        tuiterLite.tuitarAlgo(usuario, texto));
             }
-            String texto = sb.toString();
-
-            assertNull("Um tuite maior do que o tamanho máximo deve ser ignorado",
-                    tuiterLite.tuitarAlgo(usuario, texto));
+        }catch (TamMaxTuiteUltrapassadoException | UsuarioCadastradoException e){
+            System.out.println(e.getMessage());
         }
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testeAnexo() {
+    public void testeAnexo() throws TamMaxTuiteUltrapassadoException, UsuarioCadastradoException {
 
         Tuite tuite = tuiterLite.tuitarAlgo(usuario, "Testando");
 
@@ -84,7 +95,7 @@ public class TuiterLiteTest {
     }
 
     @Test
-    public void testeApenasUmTipoPermitidoComoAnexo() {
+    public void testeApenasUmTipoPermitidoComoAnexo() throws EmailInvalidoException, TamMaxTuiteUltrapassadoException, UsuarioCadastradoException {
 
         // vamos criar um outro TuiterLite aqui, especificando que ele deverá se relacionar com o tipo Image
         TuiterLite<Image> tuiterLiteQueAceitaApenasImagensComoAnexo = new TuiterLite<>();
@@ -104,7 +115,7 @@ public class TuiterLiteTest {
     }
 
     @Test
-    public void testeHashtags() {
+    public void testeHashtags() throws TamMaxTuiteUltrapassadoException, UsuarioCadastradoException {
 
         Tuite tuite = tuiterLite.tuitarAlgo(usuario, "#LAB5 Testando algo com #hashtag ao longo... #teste");
 
@@ -129,7 +140,7 @@ public class TuiterLiteTest {
     }
 
     @Test
-    public void testeTipoUsuario() {
+    public void testeTipoUsuario() throws TamMaxTuiteUltrapassadoException, UsuarioCadastradoException {
         // sanity check
         assertEquals("Um usuário sem nenhum tuite deve estar no nível INICIANTE",
                 NivelUsuario.INICIANTE, usuario.getNivel());
@@ -167,7 +178,7 @@ public class TuiterLiteTest {
     /////   ATENÇÃO: Este teste deve rodar rapidamente (poucos segundos)
     /////
     @Test
-    public void testePerformanceContabilizacaoDasHashtags() {
+    public void testePerformanceContabilizacaoDasHashtags() throws TamMaxTuiteUltrapassadoException, UsuarioCadastradoException{
 
         long inicio = System.currentTimeMillis();
         for (int i = 1; i <= 30; i++) {
@@ -184,23 +195,27 @@ public class TuiterLiteTest {
     /////   ATENÇÃO: Este teste deve rodar rapidamente (poucos segundos)
     /////
     @Test
-    public void testePerformanceTuites() {
-        long inicio = System.currentTimeMillis();
+    public void testePerformanceTuites() throws EmailInvalidoException {
+        try {
+            long inicio = System.currentTimeMillis();
 
-        // vamos cadastrar um número grande de usuários
-        for (int i = 1; i <= 300_000; i++) {
-            String nome = String.format("Usuário %d", i);
-            String email = String.format("usuario%d@email.com", i);
-            tuiterLite.cadastrarUsuario(nome, email);
+            // vamos cadastrar um número grande de usuários
+            for (int i = 1; i <= 300_000; i++) {
+                String nome = String.format("Usuário %d", i);
+                String email = String.format("usuario%d@email.com", i);
+                tuiterLite.cadastrarUsuario(nome, email);
+            }
+
+            // agora vamos tentar fazer um número grande de tuítes com usuário desconhecido
+            Usuario usuarioNaoCadastrado = new Usuario("Usuário Desconhedido", "unknown@void.com");
+            for (int i = 1; i <= 300_000; i++) {
+                assertNull(tuiterLite.tuitarAlgo(usuarioNaoCadastrado, "Teste"));
+            }
+
+            System.out.println("duracao = " +
+                    (System.currentTimeMillis() - inicio) + " milissegundos");
+        }catch (UsuarioCadastradoException | TamMaxTuiteUltrapassadoException e){
+            System.out.println(e.getMessage());
         }
-
-        // agora vamos tentar fazer um número grande de tuítes com usuário desconhecido
-        Usuario usuarioNaoCadastrado = new Usuario("Usuário Desconhedido", "unknown@void.com");
-        for (int i = 1; i <= 300_000; i++) {
-            assertNull(tuiterLite.tuitarAlgo(usuarioNaoCadastrado, "Teste"));
-        }
-
-        System.out.println("duracao = " +
-                (System.currentTimeMillis() - inicio) + " milissegundos");
     }
 }

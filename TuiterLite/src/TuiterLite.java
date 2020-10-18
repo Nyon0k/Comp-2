@@ -1,3 +1,7 @@
+import Exceptions.EmailInvalidoException;
+import Exceptions.TamMaxTuiteUltrapassadoException;
+import Exceptions.UsuarioCadastradoException;
+
 import java.util.*;
 
 /**
@@ -32,7 +36,7 @@ public class TuiterLite<T> {
      * @param email O e-mail do usuário (precisa ser único no sistema).
      * @return O Usuario criado.
      */
-    public Usuario cadastrarUsuario(String nome, String email) {
+    public Usuario cadastrarUsuario(String nome, String email) throws EmailInvalidoException {
         Usuario novoUsuario = new Usuario(nome, email);
 
         if (this.usuarioByEmail.containsKey(email)) {
@@ -53,17 +57,13 @@ public class TuiterLite<T> {
      * @param texto   O texto desejado
      * @return Um "tuíte", que será devidamente publicado no sistema
      */
-    public Tuite tuitarAlgo(Usuario usuario, String texto) {
+    public Tuite tuitarAlgo(Usuario usuario, String texto) throws UsuarioCadastradoException, TamMaxTuiteUltrapassadoException {
 
-        if (texto.length() > TAMANHO_MAXIMO_TUITES) {
-            return null;
-        }
+        if (texto.length() > TAMANHO_MAXIMO_TUITES) throw new TamMaxTuiteUltrapassadoException();
 
         String email = usuario.getEmail();
 
-        if (!this.usuarioByEmail.containsKey(email)) {
-            return null;
-        }
+        if (!this.usuarioByEmail.containsKey(email)) throw new UsuarioCadastradoException();
 
         Tuite tuite = new Tuite(usuario, texto);
 
